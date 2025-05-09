@@ -26,10 +26,8 @@ It meant that the order of the data mattered. Observations were **not independen
 With this realization, I explored classical time series models:
 
 * **ARIMA** and **SARIMA**: But these models assume univariate data or require heavy feature engineering for multivariate setups.
-* **VAR (Vector AutoRegression)**: Better, but still not optimal. It made too many assumptions about stationarity and lag dependencies.
-
-In the end, I found that these models weren’t ideal for my dataset, which was both **nonlinear and multivariate** in nature.
-
+* **VAR (Vector AutoRegression)**: Better, but still not optimal. It made too many assumptions about stationarity and lag dependencies . 
+* **I also explored classical multivariate time series models like VAR, but they quickly became computationally inefficient due to the size of the dataset (16,000+ rows × 30+ features). Since VAR models require estimating parameters for every combination of variable and lag, this led to a parameter explosion and sluggish performance — making them impractical for this use case.
 ---
 
 ## 🌲 Switching Gears: Why I Chose Random Forest Again
