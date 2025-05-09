@@ -181,6 +181,3 @@ This project was a rollercoaster — it began as a regression task, evolved into
 
 It was challenging, intense, and deeply satisfying to see the model improve step by step — and that final 97% R² score was earned through **insight**, not brute force.
 
----
-
-Let me know if you want this uploaded as a `README.md` file or if you'd like badges (e.g., `Made with Python`, `Scikit-learn`) added.
