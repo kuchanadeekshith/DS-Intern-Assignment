@@ -1,115 +1,186 @@
-# Smart Factory Energy Prediction Challenge
 
-## Problem Overview
+# Smart Factory Energy Prediction Challenge 
+# ⚡ Equipment Energy Consumption Forecasting — A Time Series Journey 
+## 📘 Problem Statement
 
-You've been hired as a data scientist for SmartManufacture Inc., a leading industrial automation company. The company has deployed an extensive sensor network throughout one of their client's manufacturing facilities to monitor environmental conditions and energy usage.
+The project started with a seemingly straightforward goal: **predict the energy consumption of equipment** using other recorded features such as humidity, wind speed, temperature, and more. At first glance, it looked like a classic regression task — clean the data, select a model, and tune it for performance.
 
-The client is concerned about the increasing energy costs associated with their manufacturing equipment. They want to implement a predictive system that can forecast equipment energy consumption based on various environmental factors and sensor readings from different zones of the factory.
+But as I dove deeper, I began to realize: **this wasn’t just a regression problem. It was a time series problem in disguise**.
 
-## Your Task
+---
 
-Your assignment is to develop a machine learning model that can accurately predict the energy consumption of industrial equipment (`equipment_energy_consumption`) based on the data collected from the factory's sensor network. This will help the facility managers optimize their operations for energy efficiency and cost reduction.
+## 🧠 The Turning Point: Realizing It's Time-Based
 
-### Specific Goals:
+I initially approached the problem using standard regression methods — trying out Random Forest and XGBoost directly on the raw features. But something felt off. The scores were poor, especially the R² score, which was close to zero or even negative.
 
-1. Analyze the provided sensor data to identify patterns and relationships between environmental factors and equipment energy consumption
-2. Build a robust regression model to predict equipment energy consumption
-3. Evaluate the model's performance using appropriate metrics
-4. Provide actionable insights and recommendations for reducing energy consumption
+That’s when I started questioning the structure of the dataset. I noticed columns like `year`, `month`, `day`, `hour`, and `minute` — the kind of features you see in **time series data**.
 
-## Repository Structure
+This changed everything.
 
-This repository is organized as follows:
+It meant that the order of the data mattered. Observations were **not independent**; there was likely a pattern over time that the model was failing to capture. So I paused, stepped back, and began to study **time series modeling**.
 
-```
-.
-├── data/               # Contains the training and test datasets
-│   ├── data.csv        # dataset
-├── docs/               # Documentation files
-│   └── data_description.md  # Detailed description of all features
-└── README.md           # This file
-```
+---
 
-## Dataset Description
+## 📚 Exploring Classical Time Series Models
 
-The data comes from a manufacturing facility equipped with multiple sensors that collect environmental measurements. Each record contains:
+With this realization, I explored classical time series models:
 
-- Timestamp of the measurement
-- Energy consumption readings for equipment and lighting
-- Temperature and humidity readings from 9 different zones in the facility
-- Outdoor weather conditions (temperature, humidity, pressure, etc.)
-- Additional measurements and calculated variables
+* **ARIMA** and **SARIMA**: But these models assume univariate data or require heavy feature engineering for multivariate setups.
+* **VAR (Vector AutoRegression)**: Better, but still not optimal. It made too many assumptions about stationarity and lag dependencies.
 
-### Notes on Feature Selection and Random Variables
+In the end, I found that these models weren’t ideal for my dataset, which was both **nonlinear and multivariate** in nature.
 
-The dataset includes two variables named `random_variable1` and `random_variable2`. Part of your task is to determine, through proper data analysis and feature selection techniques, whether these variables should be included in your model or not. This mimics real-world scenarios where not all available data is necessarily useful for prediction.
+---
 
-Your approach to handling these variables should be clearly documented and justified in your analysis. This will be an important part of evaluating your feature selection methodology.
+## 🌲 Switching Gears: Why I Chose Random Forest Again
 
-Note that your final solution will also be evaluated on a separate holdout dataset that we maintain privately, which serves as an additional check on your model's generalization capability.
+Instead of forcing the data into classical time series molds, I pivoted back to **Random Forest** and **XGBoost** — this time, with a **time-aware perspective**.
 
-For a detailed description of all features, please refer to the [data description document](docs/data_description.md).
+These models are:
 
-## Deliverables
+* Robust to outliers
+* Don’t require normalization or stationarity
+* Great at capturing nonlinear interactions
 
-Your submission should include:
+But I knew this time I had to **transform the dataset to reflect its temporal nature** — otherwise, even the best model wouldn’t perform well.
 
-1. **A well-documented Jupyter notebook** containing:
-   - Exploratory data analysis (EDA)
-   - Data preprocessing steps
-   - Feature engineering and selection
-   - Model development and training
-   - Model evaluation and testing
-   - Key findings and insights
+---
 
-2. **Python script(s)/notebook(s)** with your final model implementation
+## 🧹 Data Cleaning & Preprocessing
 
-3. **A brief report (PDF or Markdown format)** summarizing:
-   - Your approach to the problem
-   - Key insights from the data
-   - Model performance evaluation
-   - Recommendations for reducing equipment energy consumption
+Here’s where the real engineering began.
 
-## Evaluation Criteria
+### 🔴 Handling Negative Values
 
-Your solution will be evaluated based on:
+I noticed negative values in features like `humidity`, `wind speed`, etc. — which don’t make sense. Negative wind? Negative humidity?
 
-1. **Code Quality and Structure (25%)**
-   - Clean, well-organized, and properly documented code
-   - Appropriate use of functions and classes
-   - Effective use of Git with meaningful commit messages
-   - Code readability and adherence to Python conventions
+I had two choices:
 
-2. **Data Analysis and Preprocessing (25%)**
-   - Thoroughness of exploratory data analysis
-   - Handling of missing values, outliers, and data transformations
-   - Feature engineering creativity and effectiveness
-   - Proper data splitting methodology
+1. Assume it's a sign error and make them positive.
+2. Drop the rows entirely.
 
-3. **Model Development (25%)**
-   - Selection and justification of algorithms
-   - Hyperparameter tuning approach
-   - Implementation of cross-validation
-   - Model interpretability considerations
+Since these values made up only \~2% of the dataset, I chose to **remove them** rather than assume anything. For temperature (in Celsius), I allowed negative values.
 
-4. **Results and Insights (25%)**
-   - Model performance metrics (RMSE, MAE, R²) on both the test dataset and our private holdout dataset
-   - Quality of visualizations and explanations
-   - Practical insights and recommendations
-   - Critical evaluation of model limitations
+### 🟡 Handling Missing Values
 
-## Submission Instructions
+There were `NaN` values scattered throughout. I had two options again:
 
-1. Fork this repository to your own GitHub account, naming it `DS-Intern-Assignment-[YourName]` (replace `[YourName]` with your actual name)
-2. Clone your forked repository to your local machine
-3. Make regular, meaningful commits as you develop your solution
-4. Push your changes to your forked repository
-5. Once complete, submit the URL of your forked repository
+* **Forward-fill** (`ffill`) — makes sense because data is recorded every 10 minutes.
+* **Median imputation** — simpler and less risky.
 
-Your commit history will be reviewed as part of the evaluation, so make sure to commit regularly and include meaningful commit messages that reflect your development process.
+I used **median imputation**, and the model still performed well, but acknowledged that **forward-filling** could work better in production scenarios.
 
-## Time Commitment
+---
 
-Deadline will be mentioned in the mail.
+## 📊 Exploratory Data Analysis
 
-Good luck!
+To understand the nature of the data:
+
+* I plotted features over time
+* Checked for **seasonality**, **trends**, and **outliers**
+* Verified that features had **low multicollinearity**, which is ideal for tree-based models
+
+This gave me more confidence in the data — I knew it was clean, and I understood its behavior.
+
+---
+
+## 🧠 Feature Engineering: The Game-Changer
+
+This was the most crucial step.
+
+After realizing that the model lacked temporal awareness, I introduced:
+
+### ⏱️ Lag Features
+
+I added:
+
+* `lag_1`: energy consumption from 10 minutes ago
+* `lag_2`: from 20 minutes ago
+* `lag_3`: from 30 minutes ago
+
+This gave the model a **memory** of past consumption.
+
+### 📈 Rolling Statistics
+
+Then I added:
+
+* `rolling_mean_3`: average of the last 3 time steps
+* `rolling_std_3`: standard deviation of the last 3 steps
+
+These features captured:
+
+* **Trend (rolling mean)** — is it increasing or decreasing?
+* **Volatility (rolling std)** — is it stable or fluctuating?
+
+This combination made a **huge difference**.
+
+> 🧪 Before: R² ≈ -0.01
+> 🚀 After: R² ≈ **0.976**
+
+---
+
+## 🤖 Final Model and Results
+
+### 📌 Model Used:
+
+* **Random Forest Regressor**
+
+### 🧪 Performance Metrics:
+
+| Metric   | Score     |
+| -------- | --------- |
+| MSE      | 0.0001219 |
+| R² Score | 0.9762    |
+
+### 🔍 Feature Importance:
+
+Time-based features (lags, rolling stats) were **far more important** than the original sensor features — showing how critical temporal awareness was.
+
+---
+
+## 💡 Insights & Learnings
+
+* **Rolling mean and std aren’t redundant** — mean shows **trend**, std shows **volatility**
+* Tree models like Random Forest can outperform ARIMA/SARIMA when features are well-designed
+* Domain expertise is crucial — it helped me handle weird values and make the right assumptions
+* EDA and feature engineering often matter **more than fancy algorithms**
+
+---
+
+## 🧠 What Worked
+
+* Treating the problem as time-series instead of regression
+* Using tree models instead of linear or ARIMA-based ones
+* Engineering temporal features (lags, rolling stats)
+* Carefully handling outliers and missing data
+
+---
+
+## 💥 What Didn’t Work
+🗓️ Tried Date-Based Features (That Didn’t Help Much)
+I engineered time-based features like:
+
+Day of the week
+
+Week of the month
+
+Season of the year
+
+But these features turned out to be ineffective for this dataset — likely because energy usage was more short-term reactive than cyclical on a calendar level.
+
+* ARIMA/SARIMA/VAR: ineffective for this dataset
+* Treating data as i.i.d. — led to poor scores
+* Using only original features — lacked temporal signal
+
+
+---
+
+## 🧪 Final Thoughts
+
+This project was a rollercoaster — it began as a regression task, evolved into a time series problem, and ended as a lesson in **how critical domain knowledge and feature engineering are**.
+
+It was challenging, intense, and deeply satisfying to see the model improve step by step — and that final 97% R² score was earned through **insight**, not brute force.
+
+---
+
+Let me know if you want this uploaded as a `README.md` file or if you'd like badges (e.g., `Made with Python`, `Scikit-learn`) added.
